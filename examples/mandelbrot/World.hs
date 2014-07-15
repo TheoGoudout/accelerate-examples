@@ -21,7 +21,6 @@ import Data.Label
 import Data.Array.Accelerate                    as A
 import Graphics.Gloss.Interface.Pure.Game       hiding ( translate, scale )
 
-
 -- World state
 -- -----------
 
@@ -42,8 +41,40 @@ data World where
 
 -- Render the picture
 --
-renderWorld :: World -> Bitmap
-renderWorld (World view render _ _ _) = render $ A.fromList Z [view]
+renderWorld :: World -> Options -> Bitmap
+renderWorld (World view render _ _ _) config =
+  case pieces of
+    [x] -> x
+    _   -> fuse pieces (Z:.screenX:.screenY)
+  where
+    screenX = get optWidth   config
+    screenY = get optHeight  config
+    n       = get optChuncks config
+    --
+    views  = P.map (\view' -> A.fromList Z [view']) $ splitView view n
+    pieces = render $ views
+
+-- Fuse multiple bitmap into oneof a given shape
+--
+fuse :: [Bitmap] -> DIM2 -> Bitmap
+fuse bitmaps sh = fromList sh $ fuse' bitmaps
+  where
+    fuse' :: [Bitmap] -> [RGBA32]
+    fuse' []     = error "No bitmap to fuse."
+    fuse' [x]    = toList x
+    fuse' (x:xs) = (P.++) (toList x) (fuse' xs)
+
+
+-- Split one view into several views
+--
+splitView :: Fractional a => View a -> Int -> [View a]
+splitView _                          0 = error "You can't divide by zero..."
+splitView view                       1 = view : []
+splitView (xmin, ymin, xmax, ymax)   n =
+  (xmin, ymin, xmax, y) : splitView (xmin, y, xmax, ymax) (n - 1)
+  where
+    n' = realToFrac n
+    y  = ((ymax - ymin) / n') + ymin
 
 
 -- Initialise the World state
@@ -59,13 +90,15 @@ initialWorld config view
 setPrecisionOfWorld :: Precision -> Options -> World -> World
 setPrecisionOfWorld f config (World p _ z h v)
   = let
-        width   = get optWidth config
-        height  = get optHeight config
-        limit   = get optLimit config
+        n       = get optChuncks config
+        --
+        width   = get optWidth   config
+        height  = get optHeight  config `div` n
+        limit   = get optLimit   config
         backend = get optBackend config
 
         render :: (Elt a, IsFloating a) => Render a
-        render  = run1 backend
+        render  = stream backend
                 $ A.map (prettyRGBA (constant (P.fromIntegral limit)))
                 . mandelbrot width height limit
 

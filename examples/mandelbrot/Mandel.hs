@@ -6,7 +6,7 @@
 module Mandel (
 
   -- Types
-  View, Render, Bitmap,
+  View, Render, Bitmap, RGBA32,
 
   -- Pretty pictures
   mandelbrot, prettyRGBA,
@@ -27,7 +27,7 @@ type View a             = (a, a, a, a)
 type Bitmap             = Array DIM2 RGBA32
 
 -- Action to render a frame
-type Render a           = Scalar (View a) -> Bitmap
+type Render a           = [Scalar (View a)] -> [Bitmap]
 
 
 -- Mandelbrot Set --------------------------------------------------------------

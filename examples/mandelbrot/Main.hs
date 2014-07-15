@@ -22,8 +22,8 @@ import qualified Graphics.Gloss                 as G
 
 -- Main ------------------------------------------------------------------------
 
-makePicture :: World -> G.Picture
-makePicture world = bitmapOfArray (renderWorld world) False
+makePicture :: World -> Options -> G.Picture
+makePicture world config = bitmapOfArray (renderWorld world config) False
 
 
 main :: IO ()
@@ -48,13 +48,13 @@ main
             mandel
               | get optBench conf
               = withArgs rest $ defaultMainWith cconf (return ())
-                    [ bench "mandelbrot" $ whnf (force . renderWorld) world ]
+                    [ bench "mandelbrot" $ whnf (force . (flip renderWorld conf)) world ]
 #ifdef ACCELERATE_ENABLE_GUI
               | fps == 0
               = G.display
                     (G.InWindow "Mandelbrot" (width, height) (10, 10))
                     G.black
-                    (makePicture world)
+                    (makePicture world conf)
 
               | fps > 0
               = G.play
@@ -62,7 +62,7 @@ main
                     G.black
                     fps
                     world
-                    makePicture
+                    (flip makePicture conf)
                     (react conf)
                     (const refocus)
 #endif

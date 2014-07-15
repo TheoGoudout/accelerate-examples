@@ -11,6 +11,7 @@ data Options = Options
     _optBackend         :: Backend
   , _optWidth           :: Int
   , _optHeight          :: Int
+  , _optChuncks         :: Int
   , _optLimit           :: Int
   , _optFramerate       :: Int
   , _optBench           :: Bool
@@ -25,6 +26,7 @@ defaults = Options
   { _optBackend         = maxBound
   , _optWidth           = 800
   , _optHeight          = 600
+  , _optChuncks         = 1
   , _optLimit           = 255
   , _optFramerate       = 25
 #ifdef ACCELERATE_ENABLE_GUI
@@ -37,13 +39,14 @@ defaults = Options
 
 options :: [OptDescr (Options -> Options)]
 options =
-  [ Option []   ["width"]       (ReqArg (set optWidth . read) "INT")    "visualisation width (800)"
-  , Option []   ["height"]      (ReqArg (set optHeight . read) "INT")   "visualisation height (600)"
-  , Option []   ["limit"]       (ReqArg (set optLimit . read) "INT")    "iteration limit for escape (255)"
-  , Option []   ["framerate"]   (ReqArg (set optFramerate . read) "INT")"visualisation framerate (10)"
-  , Option []   ["static"]      (NoArg  (set optFramerate 0))           "do not animate the image"
-  , Option []   ["benchmark"]   (NoArg  (set optBench True))            "benchmark instead of displaying animation (False)"
-  , Option "h?" ["help"]        (NoArg  (set optHelp True))             "show help message"
+  [ Option []   ["width"]       (ReqArg (set optWidth     . read) "INT") "visualisation width (800)"
+  , Option []   ["height"]      (ReqArg (set optHeight    . read) "INT") "visualisation height (600)"
+  , Option []   ["chuncks"]     (ReqArg (set optChuncks   . read) "INT") "number of chuncks the computation should be splitted in (1)"
+  , Option []   ["limit"]       (ReqArg (set optLimit     . read) "INT") "iteration limit for escape (255)"
+  , Option []   ["framerate"]   (ReqArg (set optFramerate . read) "INT") "visualisation framerate (10)"
+  , Option []   ["static"]      (NoArg  (set optFramerate 0))            "do not animate the image"
+  , Option []   ["benchmark"]   (NoArg  (set optBench True))             "benchmark instead of displaying animation (False)"
+  , Option "h?" ["help"]        (NoArg  (set optHelp True))              "show help message"
   ]
 
 
