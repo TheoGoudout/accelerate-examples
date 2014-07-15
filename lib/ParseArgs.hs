@@ -44,6 +44,15 @@ run1 CUDA        f = CUDA.run1 f
 run2 :: (Arrays a, Arrays b, Arrays c) => Backend -> (Acc a -> Acc b -> Acc c) -> a -> b -> c
 run2 backend f x y = run1 backend (A.uncurry f) (x,y)
 
+stream :: (Arrays a, Arrays b) => Backend -> (Acc a -> Acc b) -> [a] -> [b]
+stream Interpreter f = map (Interp.run1 f)
+#ifdef ACCELERATE_CUDA_BACKEND
+stream CUDA        f = CUDA.stream f
+#endif
+
+stream2 :: (Arrays a, Arrays b, Arrays c) => Backend -> (Acc a -> Acc b -> Acc c) -> [a] -> [b] -> [c]
+stream2 backend f x y = stream backend (A.uncurry f) (Prelude.zipWith (,) x y)
+
 
 -- | The set of backends available to execute the program. The example programs
 --   all choose 'maxBound' as the default, so there should be some honesty in
